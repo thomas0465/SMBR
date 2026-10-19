@@ -15,6 +15,12 @@ func _export_file(path: String, type: String, features: PackedStringArray) -> vo
 
 	if type != "GDScript":
 		return
+
+	# Android: the hooked copy below is added next to the original (see the note further down), which creates
+	# duplicate entries inside the APK. Android's apksigner rejects duplicate ZIP entries, so skip hooking there.
+	# Mod script hooks are therefore unavailable on the Android build.
+	if features.has("android"):
+		return
 	
 	# skip() 
 	# We can't skip any files anymore. 
