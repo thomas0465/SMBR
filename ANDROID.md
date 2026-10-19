@@ -6,19 +6,18 @@ that runs entirely off GitHub Releases on **your fork**. Nothing here changes de
 ## One-time setup
 
 1. Fork the repo (or push this branch to your own repo) and enable Actions.
-2. Create a signing key. Keep it safe: every future APK update must be signed with the same one.
+2. Signing key (optional). With no secrets set, the workflow generates a key the first time and keeps it in the repo's
+   Actions cache, so later APKs install over earlier ones. GitHub can evict caches (for example after 7 days unused),
+   in which case a new key is made and Android will ask you to uninstall first, which wipes the app's data.
+   For a key that never changes, create your own and add it as secrets:
 
        keytool -genkeypair -v -keystore release.keystore -alias smb1r \
          -keyalg RSA -keysize 2048 -validity 10000
-       base64 -w0 release.keystore      # paste into the secret below
+       base64 -w0 release.keystore
 
-   Use the **same password** for the keystore and the key.
-3. In the fork: Settings > Secrets and variables > Actions, add:
-   - `ANDROID_KEYSTORE_BASE64` (output of the base64 command)
-   - `ANDROID_KEYSTORE_ALIAS` (`smb1r` above)
-   - `ANDROID_KEYSTORE_PASSWORD`
-4. Actions > "Android release (APK + OTA)" > Run workflow > `full`.
-5. Download `SMB1R.apk` from the new release, copy it to the handheld, install it
+   Secrets: `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_ALIAS`, `ANDROID_KEYSTORE_PASSWORD` (same password for store and key).
+3. Run Actions > "Android release (APK + OTA)" > Run workflow > `full`.
+4. Download `SMB1R.apk` from the new release, copy it to the handheld, install it
    (allow installs from your file manager or browser when Android asks).
 
 ## Getting your ROM in

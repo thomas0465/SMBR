@@ -28,6 +28,8 @@ env:
 jobs:
   build:
     runs-on: ubuntu-24.04
+    env:
+      HAVE_KEYSTORE_SECRET: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -113,17 +115,54 @@ jobs:
           godot --headless --export-pack "Android OTA PCK" "$PWD/build/update.pck"
           test -s build/update.pck
 
-      - name: Export signed APK
-        if: inputs.release_type == 'full'
+      # Signing key: use your own secrets if set, otherwise generate one once and keep it in the Actions cache,
+      # so later APKs are signed with the same key and install over the old one.
+      - name: Use signing key from secrets
+        if: inputs.release_type == 'full' && env.HAVE_KEYSTORE_SECRET == 'true'
         env:
           KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-          GODOT_ANDROID_KEYSTORE_RELEASE_USER: ${{ secrets.ANDROID_KEYSTORE_ALIAS }}
-          GODOT_ANDROID_KEYSTORE_RELEASE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEYSTORE_ALIAS }}
+          KEY_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
         run: |
           set -euo pipefail
-          if [ -z "${KEYSTORE_B64}" ]; then echo "Missing secret ANDROID_KEYSTORE_BASE64 (see ANDROID.md)"; exit 1; fi
           echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/release.keystore"
-          export GODOT_ANDROID_KEYSTORE_RELEASE_PATH="$RUNNER_TEMP/release.keystore"
+          {
+            echo "GODOT_ANDROID_KEYSTORE_RELEASE_PATH=$RUNNER_TEMP/release.keystore"
+            echo "GODOT_ANDROID_KEYSTORE_RELEASE_USER=$KEY_ALIAS"
+            echo "GODOT_ANDROID_KEYSTORE_RELEASE_PASSWORD=$KEY_PASS"
+          } >> "$GITHUB_ENV"
+
+      - name: Restore generated signing key
+        if: inputs.release_type == 'full' && env.HAVE_KEYSTORE_SECRET != 'true'
+        uses: actions/cache@v4
+        with:
+          path: ~/.smbr-signing
+          key: smbr-signing-key-v1
+
+      - name: Use generated signing key
+        if: inputs.release_type == 'full' && env.HAVE_KEYSTORE_SECRET != 'true'
+        run: |
+          set -euo pipefail
+          D="$HOME/.smbr-signing"
+          mkdir -p "$D"
+          if [ ! -s "$D/release.keystore" ]; then
+            echo "No saved key found, generating a new one."
+            openssl rand -hex 16 > "$D/pass.txt"
+            keytool -genkeypair -keystore "$D/release.keystore" -alias smbr -keyalg RSA -keysize 2048 \
+              -validity 10000 -storepass "$(cat "$D/pass.txt")" -keypass "$(cat "$D/pass.txt")" \
+              -dname "CN=SMBR Android, O=Personal, C=US"
+          fi
+          echo "::add-mask::$(cat "$D/pass.txt")"
+          {
+            echo "GODOT_ANDROID_KEYSTORE_RELEASE_PATH=$D/release.keystore"
+            echo "GODOT_ANDROID_KEYSTORE_RELEASE_USER=smbr"
+            echo "GODOT_ANDROID_KEYSTORE_RELEASE_PASSWORD=$(cat "$D/pass.txt")"
+          } >> "$GITHUB_ENV"
+
+      - name: Export signed APK
+        if: inputs.release_type == 'full'
+        run: |
+          set -euo pipefail
           godot --headless --export-release "Android arm64" "$PWD/build/SMB1R.apk"
           test -s build/SMB1R.apk
 
