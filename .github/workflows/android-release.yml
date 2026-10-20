@@ -166,6 +166,19 @@ jobs:
           godot --headless --export-release "Android arm64" "$PWD/build/SMB1R.apk"
           test -s build/SMB1R.apk
 
+      # Diagnostic builds, published next to the main APK. If the game closes right after opening on a device,
+      # try these to find out whether the engine, the GIF library or the game itself is the cause.
+      - name: Export diagnostic APKs
+        if: inputs.release_type == 'full'
+        run: |
+          set -euo pipefail
+          godot --headless --export-release "Android arm64 no GIF" "$PWD/build/SMB1R-nogif.apk"
+          test -s build/SMB1R-nogif.apk
+          cd .github/android/hello
+          godot --headless --import || true
+          godot --headless --export-release "Android arm64" "$GITHUB_WORKSPACE/build/Hello-engine-test.apk"
+          test -s "$GITHUB_WORKSPACE/build/Hello-engine-test.apk"
+
       - name: Write update manifest
         env:
           NOTES: ${{ inputs.notes }}
@@ -193,7 +206,7 @@ jobs:
           set -euo pipefail
           TAG="android-b${{ steps.nums.outputs.build }}"
           FILES="build/update.pck build/update.json"
-          if [ "${{ inputs.release_type }}" = "full" ]; then FILES="$FILES build/SMB1R.apk"; fi
+          if [ "${{ inputs.release_type }}" = "full" ]; then FILES="$FILES build/SMB1R.apk build/SMB1R-nogif.apk build/Hello-engine-test.apk"; fi
           gh release create "$TAG" $FILES \
             --repo "${{ github.repository }}" \
             --title "Android ${{ steps.nums.outputs.version }}" \
