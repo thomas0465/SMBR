@@ -32,6 +32,10 @@ const LOG_NAME := "ModLoader"
 
 
 func _init() -> void:
+	# Android: not supported (see mod_loader_store.gd).
+	if OS.has_feature("android"):
+		return
+
 	# if mods are not enabled - don't load mods
 	if ModLoaderStore.REQUIRE_CMD_LINE and not _ModLoaderCLI.is_running_with_command_line_arg("--enable-mods"):
 		return

@@ -42,10 +42,10 @@ func _ready() -> void:
 		DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, false)
 
 const ANDROID_ROM_DIRS := [
-	"/storage/emulated/0/Roms/NES", "/storage/emulated/0/ROMs/NES", "/storage/emulated/0/roms/nes",
+	"/storage/emulated/0/SMBR", "/storage/emulated/0/Roms/NES", "/storage/emulated/0/ROMs/NES", "/storage/emulated/0/roms/nes",
 	"/storage/emulated/0/Roms/FC", "/storage/emulated/0/ROMs/nes", "/storage/emulated/0/Roms/Nintendo - NES",
 	"/storage/emulated/0/Roms", "/storage/emulated/0/ROMs", "/storage/emulated/0/Download",
-	"/storage/emulated/0/Documents", "/storage/emulated/0/SMB1R",
+	"/storage/emulated/0/Documents",
 ]
 
 func find_android_rom() -> String:
