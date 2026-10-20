@@ -24,10 +24,24 @@ that runs entirely off GitHub Releases on **your fork**. Nothing here changes de
 
 The game needs an original SMB1 NES ROM (it rips its assets from it on first run). On first launch it:
 
-1. asks for storage access and scans `Roms/NES`, `Roms`, `Download`, `Documents` and `SMB1R` on shared storage for a valid ROM, then
+1. asks for storage access and scans `SMBR`, `Roms/NES`, `Roms`, `Download` and `Documents` on shared storage for a valid ROM, then
 2. otherwise shows the usual "select ROM" button, which opens Android's file picker.
 
 The ROM is copied into the app's private storage once; asset generation runs on the device and takes a moment.
+
+## Where your files go (Internal storage/SMBR)
+
+Saves, settings, level packs, resource packs and custom characters live in a normal folder you can reach with any file manager:
+
+    Internal storage/SMBR/
+      level_packs/  custom_levels/  resource_packs/  custom_characters/  blueprints/  saves/  screenshots/  ...
+
+Drop level packs into `level_packs`, resource packs into `resource_packs`, and so on, exactly like the desktop game's config folder.
+
+- On the first launch Android's "All files access" screen opens. Allow it, then fully close and reopen the game. Until then the game uses its private storage.
+- On the first launch with access, anything already in the private storage (saves, settings, your ROM and the generated assets) is copied into `SMBR` once. Existing files in `SMBR` are never overwritten.
+- If you ever lose access, the game falls back to its private storage and your `SMBR` folder is left untouched.
+- The updater's own files stay private; they are not part of `SMBR`.
 
 ## Shipping updates
 

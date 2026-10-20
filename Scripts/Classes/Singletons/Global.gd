@@ -224,6 +224,7 @@ func _ready() -> void:
 	if OS.is_debug_build(): debug_mode = false
 	get_server_version()
 	setup_config_dirs()
+	request_android_storage_access.call_deferred()
 	check_for_rom()
 	load_default_translations()
 	level_theme_changed.connect(load_default_translations)
@@ -257,7 +258,67 @@ func setup_config_dirs() -> void:
 			
 	ModsTransfer.move_mods_to_new_path(ModsTransfer.find_mods_in_old_path())
 
+## Android: game data (saves, settings, level packs, resource packs, custom characters...) lives in a folder
+## the user can reach with a file manager. Needs "All files access"; until that is granted the private folder is used.
+const ANDROID_SHARED_DIR := "/storage/emulated/0/SMBR/"
+const ANDROID_MIGRATED_MARKER := ".migrated_from_app_storage"
+## Private folders that must not be copied into the shared folder.
+const ANDROID_MIGRATION_SKIP := ["ota", "logs"]
+static var _android_config_path := ""
+
+func get_android_config_path() -> String:
+	if _android_config_path != "":
+		return _android_config_path # must stay constant for the whole run, other code calls get_config_path() again
+	_android_config_path = "user://"
+	if _android_dir_is_writable(ANDROID_SHARED_DIR):
+		_android_config_path = ANDROID_SHARED_DIR
+		if not FileAccess.file_exists(ANDROID_SHARED_DIR + ANDROID_MIGRATED_MARKER):
+			_android_copy_dir("user://", ANDROID_SHARED_DIR, true)
+			var marker := FileAccess.open(ANDROID_SHARED_DIR + ANDROID_MIGRATED_MARKER, FileAccess.WRITE)
+			if marker:
+				marker.store_string("Data from the app's private storage was copied here once.")
+				marker.close()
+	return _android_config_path
+
+func _android_dir_is_writable(dir_path: String) -> bool:
+	DirAccess.make_dir_recursive_absolute(dir_path)
+	var test_path := dir_path + ".write_test"
+	var f := FileAccess.open(test_path, FileAccess.WRITE)
+	if f == null:
+		return false
+	f.close()
+	DirAccess.remove_absolute(test_path)
+	return true
+
+## Copies files that don't already exist at the destination, so nothing in the shared folder is overwritten.
+func _android_copy_dir(from_dir: String, to_dir: String, top_level := false) -> void:
+	DirAccess.make_dir_recursive_absolute(to_dir)
+	for file_name in DirAccess.get_files_at(from_dir):
+		var dest := to_dir.path_join(file_name)
+		if not FileAccess.file_exists(dest):
+			DirAccess.copy_absolute(from_dir.path_join(file_name), dest)
+	for dir_name in DirAccess.get_directories_at(from_dir):
+		if top_level and dir_name in ANDROID_MIGRATION_SKIP:
+			continue
+		_android_copy_dir(from_dir.path_join(dir_name), to_dir.path_join(dir_name))
+
+## Asks for "All files access" once, so the SMBR folder can be used from the next launch.
+func request_android_storage_access() -> void:
+	if not OS.has_feature("android") or config_path != "user://":
+		return
+	var asked_flag := "user://asked_all_files_access"
+	if FileAccess.file_exists(asked_flag):
+		return
+	var f := FileAccess.open(asked_flag, FileAccess.WRITE)
+	if f:
+		f.store_string("1")
+		f.close()
+	OS.request_permissions()
+	log_comment("Allow 'All files access', then restart the game to use the SMBR folder.", 8)
+
 func get_config_path() -> String:
+	if OS.has_feature("android"):
+		return get_android_config_path()
 	var exe_path := OS.get_executable_path()
 	var exe_dir  := exe_path.get_base_dir()
 	var portable_flag := exe_dir.path_join("portable.txt")
