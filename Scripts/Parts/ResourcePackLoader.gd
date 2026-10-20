@@ -34,8 +34,9 @@ func create_container(resource_pack := "") -> void:
 		var image = Image.new()
 		image.load(resource_pack + "/icon.png")
 		container.icon = ImageTexture.create_from_image(image)
-	elif FileAccess.file_exists(resource_pack + "/icon.gif"):
-		container.icon = GifManager.animated_texture_from_file(resource_pack + "/icon.gif")
+	elif FileAccess.file_exists(resource_pack + "/icon.gif") and Engine.has_singleton("GifManager"):
+		# Looked up dynamically so builds without the GIF extension (Android diagnostics) still compile.
+		container.icon = Engine.get_singleton("GifManager").animated_texture_from_file(resource_pack + "/icon.gif")
 	container.pack_id = resource_pack.replace(Global.config_path.path_join("resource_packs"), "").trim_prefix("/")
 	$"../ScrollContainer/VBoxContainer".add_child(container)
 	containers.append(container)

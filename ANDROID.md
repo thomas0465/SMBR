@@ -58,3 +58,12 @@ Limits to know about:
 - ROM flow: Android ROM discovery, content-URI-safe copy.
 - Android guards: no window-mode changes, no Discord, `OS.move_to_trash` replaced by a recursive delete.
 - `android_build.txt` / `android_apk_base.txt`: stamped by CI. `android_build.txt` ships inside the `.pck`, `android_apk_base.txt` deliberately does not.
+
+## If the app closes right after opening
+
+Each `full` release also contains two test APKs. Install them one at a time and note which ones open:
+
+| APK | What it tells you |
+|---|---|
+| `Hello-engine-test.apk` | A tiny Godot app (separate package, installs next to the game). If it opens it shows device and GPU info. If it also closes, the problem is the engine or the device, not the game. |
+| `SMB1R-nogif.apk` | The full game without the GIF extension. If this opens but `SMB1R.apk` doesn't, the GIF library is the culprit. |
