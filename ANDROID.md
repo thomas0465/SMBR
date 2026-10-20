@@ -67,3 +67,13 @@ Each `full` release also contains two test APKs. Install them one at a time and 
 |---|---|
 | `Hello-engine-test.apk` | A tiny Godot app (separate package, installs next to the game). If it opens it shows device and GPU info. If it also closes, the problem is the engine or the device, not the game. |
 | `SMB1R-nogif.apk` | The full game without the GIF extension. If this opens but `SMB1R.apk` doesn't, the GIF library is the culprit. |
+
+Startup tests (only needed if `SMB1R.apk` still closes). Each keeps the full game files but only runs part of its startup, then shows a status screen:
+
+| APK | What runs |
+|---|---|
+| `test-bisect0.apk` | No game autoloads at all (checks project settings and the exported files) |
+| `test-bisect1.apk` | Mod Loader and the OTA updater only |
+| `test-bisect2.apk` | All of the game's autoloads, but not the title screen |
+| `test-logtest.apk` | The real game, writing a log to `Download/SMBR-log.txt`. First allow it "All files access" in Android Settings > Apps > SMBR logtest > Permissions. |
+

@@ -179,6 +179,12 @@ jobs:
           godot --headless --export-release "Android arm64" "$GITHUB_WORKSPACE/build/Hello-engine-test.apk"
           test -s "$GITHUB_WORKSPACE/build/Hello-engine-test.apk"
 
+      - name: Export startup test APKs
+        if: inputs.release_type == 'full'
+        run: |
+          set -euo pipefail
+          python3 .github/android/make_variants.py "$GITHUB_WORKSPACE" "$(command -v godot)" "$GITHUB_WORKSPACE/build"
+
       - name: Write update manifest
         env:
           NOTES: ${{ inputs.notes }}
@@ -206,7 +212,7 @@ jobs:
           set -euo pipefail
           TAG="android-b${{ steps.nums.outputs.build }}"
           FILES="build/update.pck build/update.json"
-          if [ "${{ inputs.release_type }}" = "full" ]; then FILES="$FILES build/SMB1R.apk build/SMB1R-nogif.apk build/Hello-engine-test.apk"; fi
+          if [ "${{ inputs.release_type }}" = "full" ]; then FILES="$FILES build/SMB1R.apk build/SMB1R-nogif.apk build/Hello-engine-test.apk build/test-bisect0.apk build/test-bisect1.apk build/test-bisect2.apk build/test-logtest.apk"; fi
           gh release create "$TAG" $FILES \
             --repo "${{ github.repository }}" \
             --title "Android ${{ steps.nums.outputs.version }}" \
