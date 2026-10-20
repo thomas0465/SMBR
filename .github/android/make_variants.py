@@ -14,9 +14,8 @@ os.makedirs(out, exist_ok=True)
 
 VARIANTS = [
     # name, autoloads to keep (None = all), replace main scene, log file path
-    ("bisect0", [], True, None),
-    ("bisect1", ["ModLoaderStore", "ModLoader", "OTAUpdater"], True, None),
-    ("bisect2", None, True, None),
+    ("splitmodloader", ["ModLoaderStore", "ModLoader"], True, None),
+    ("splitota", ["OTAUpdater"], True, None),
     ("logtest", None, False, "/storage/emulated/0/Download/SMBR-log.txt"),
 ]
 

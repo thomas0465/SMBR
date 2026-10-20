@@ -72,8 +72,7 @@ Startup tests (only needed if `SMB1R.apk` still closes). Each keeps the full gam
 
 | APK | What runs |
 |---|---|
-| `test-bisect0.apk` | No game autoloads at all (checks project settings and the exported files) |
-| `test-bisect1.apk` | Mod Loader and the OTA updater only |
-| `test-bisect2.apk` | All of the game's autoloads, but not the title screen |
+| `test-splitmodloader.apk` | The Mod Loader (its store and the loader itself) |
+| `test-splitota.apk` | Only the OTA updater |
 | `test-logtest.apk` | The real game, writing a log to `Download/SMBR-log.txt`. First allow it "All files access" in Android Settings > Apps > SMBR logtest > Permissions. |
 

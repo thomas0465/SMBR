@@ -212,7 +212,7 @@ jobs:
           set -euo pipefail
           TAG="android-b${{ steps.nums.outputs.build }}"
           FILES="build/update.pck build/update.json"
-          if [ "${{ inputs.release_type }}" = "full" ]; then FILES="$FILES build/SMB1R.apk build/SMB1R-nogif.apk build/Hello-engine-test.apk build/test-bisect0.apk build/test-bisect1.apk build/test-bisect2.apk build/test-logtest.apk"; fi
+          if [ "${{ inputs.release_type }}" = "full" ]; then FILES="$FILES build/SMB1R.apk build/SMB1R-nogif.apk build/Hello-engine-test.apk build/test-splitmodloader.apk build/test-splitota.apk build/test-logtest.apk"; fi
           gh release create "$TAG" $FILES \
             --repo "${{ github.repository }}" \
             --title "Android ${{ steps.nums.outputs.version }}" \
