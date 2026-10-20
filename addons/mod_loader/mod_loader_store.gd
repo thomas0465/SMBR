@@ -117,6 +117,12 @@ var has_feature := {
 # =============================================================================
 
 func _init():
+	# Android: the Mod Loader crashes the game at launch there and mods are not supported on that build,
+	# so stay inert but keep ml_options valid for any code that reads it.
+	if OS.has_feature("android"):
+		ml_options = ModLoaderOptionsProfile.new()
+		ml_options.enable_mods = false
+		return
 	_update_ml_options_from_options_resource()
 	_update_ml_options_from_cli_args()
 	_configure_logger()
@@ -125,6 +131,8 @@ func _init():
 
 
 func _exit_tree() -> void:
+	if OS.has_feature("android"):
+		return
 	# Save the cache to the cache file.
 	_ModLoaderCache.save_to_file()
 
